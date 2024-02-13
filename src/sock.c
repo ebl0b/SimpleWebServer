@@ -14,7 +14,6 @@ int CreateSocket(void){
 		perror("Socket");
 		exit(EXIT_FAILURE);
 	}
-	printf("%d\n", socket_id);
 	return socket_id;
 }
 
@@ -41,7 +40,6 @@ int AcceptSocket(int socket_id, struct sockaddr* address, socklen_t* addr_size){
 		perror("Accept");
 		exit(EXIT_FAILURE);
 	}
-	printf("%d\n", new_sock);
 	return new_sock;
 }
 

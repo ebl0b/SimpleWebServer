@@ -7,9 +7,8 @@
 #include "utils.h"
 #include "constants.h"
 
-static Route route_list[] = 	{{"/index.html", "text/html"}, 
-				{"/img/quokka.jpg", "image/jpeg"}, 
-				{"END", "END"}};
+static const Route route_list[] = 	{{	".html", 	"text/html"	}, 
+									{	".jpg", 	"image/jpeg"}};
 
 static char* BuildHTTP(int status_code, char* content_type, char* body, int body_size, int* response_size){
 	char* response = NULL;
@@ -43,7 +42,7 @@ void ReceiveHTTP(int socket_id, char* buffer, int buffer_size){
 		perror("Receive");
 		exit(EXIT_FAILURE);
 	}
-	printf("%s", buffer);
+	//printf("%s", buffer);
 }
 
 char* ProcessHTTP(char* buffer, int buffer_size, int* response_size){
@@ -54,34 +53,30 @@ char* ProcessHTTP(char* buffer, int buffer_size, int* response_size){
 	int status_code = 0;
 	char content_type[32];
 	char method[128], uri[128];
-	perror("init done, in processing");
 	sscanf(buffer, "%s %s", method, uri);
-	perror("sscanf");
-	printf("%d\n", strcmp(route_list[0].uri, uri));
-	for(int i = 0;;i++){
-		perror("in loop");
-		if(strcmp(route_list[i].uri, uri) == 0){
-			printf("test");
-			body = ReadFile(uri, &body_size);
-			printf("\nHTML Response:\n%s\n", body);	
-			status_code = 200;
-			strcpy(content_type, route_list[i].content_type);
-			break;
+	if((body = ReadFile(uri, &body_size)) != NULL){
+		int i, route_list_size = sizeof(route_list);
+		for(i = 0; strstr(uri, route_list[i].file_type)==NULL && i<route_list_size; i++);
+		if(i==route_list_size){
+			puts("Non supported file type");
+			goto L404;
 		}
-		else if(strcmp(route_list[i].uri, "END") == 0){
-			status_code = 404;
-			break;
-		}
+		status_code = 200;
+		strcpy(content_type, route_list[i].content_type);
+
+	}else{
+		L404:
+		status_code = 404;
 	}
 	response = BuildHTTP(status_code, content_type, body, body_size, response_size);
-	printf("Full Response:\n%s\n", response);
+	//printf("Full Response:\n%s\n", response);
 	return response;
 }
 
 void SendHTTP(int socket_id, char *response, int response_size){
 	int sent_bytes = 0;
 	char* p = response;
-	printf("\n\ntotal response size: %d\n\n", response_size);
+	//printf("Full response size: %d\n", response_size);
 	while(response_size > 0){
 		if((sent_bytes = send(socket_id, p, response_size, 0)) == -1){
 			perror("Send");

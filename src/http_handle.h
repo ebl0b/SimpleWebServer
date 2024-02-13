@@ -8,7 +8,7 @@ void	SendHTTP	(int socket_id, char* response, int response_size);
 #define HTTP_HANDLE
 
 typedef struct{
-	char		uri[256];
+	char		file_type[32];
 	char		content_type[32];	
 }Route;
 
